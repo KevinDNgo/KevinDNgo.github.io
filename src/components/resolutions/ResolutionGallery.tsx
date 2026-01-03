@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useKV } from '@github/spark/hooks';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Plus, Sparkle, Heart } from '@phosphor-icons/react';
+import { Plus, Sparkle, Heart, Trash } from '@phosphor-icons/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { Resolution } from '@/lib/types';
 
@@ -10,9 +10,11 @@ interface ResolutionGalleryProps {
   resolutions: Resolution[];
   onAddNew: () => void;
   onLike: (resolutionId: string) => void;
+  onDelete: (resolutionId: string) => void;
+  isAdmin: boolean;
 }
 
-export default function ResolutionGallery({ resolutions, onAddNew, onLike }: ResolutionGalleryProps) {
+export default function ResolutionGallery({ resolutions, onAddNew, onLike, onDelete, isAdmin }: ResolutionGalleryProps) {
   const [likedIds, setLikedIds] = useKV<string[]>('liked-resolutions', []);
   const [focusedId, setFocusedId] = useState<string | null>(null);
 
@@ -84,6 +86,8 @@ export default function ResolutionGallery({ resolutions, onAddNew, onLike }: Res
                 index={index}
                 isLiked={isLiked(resolution.id)}
                 onLike={() => handleLike(resolution.id)}
+                onDelete={() => onDelete(resolution.id)}
+                isAdmin={isAdmin}
                 isFocused={focusedId === resolution.id}
                 onFocus={() => handleCardFocus(resolution.id)}
               />
@@ -113,11 +117,13 @@ interface FloatingCardProps {
   index: number;
   isLiked: boolean;
   onLike: () => void;
+  onDelete: () => void;
+  isAdmin: boolean;
   isFocused: boolean;
   onFocus: () => void;
 }
 
-function FloatingCard({ resolution, index, isLiked, onLike, isFocused, onFocus }: FloatingCardProps) {
+function FloatingCard({ resolution, index, isLiked, onLike, onDelete, isAdmin, isFocused, onFocus }: FloatingCardProps) {
   const { animationProps } = resolution;
   
   const rotation = animationProps.rotation * 0.5;
@@ -162,38 +168,57 @@ function FloatingCard({ resolution, index, isLiked, onLike, isFocused, onFocus }
             <p className="font-body text-xs sm:text-sm text-card-foreground/60 italic">
               — {resolution.author || 'Anonymous'}
             </p>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onLike();
-              }}
-              disabled={isLiked}
-              className="flex items-center gap-1 group transition-all"
-            >
-              <AnimatePresence mode="wait">
-                {isLiked ? (
+            <div className="flex items-center gap-3">
+              {isAdmin && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDelete();
+                  }}
+                  className="flex items-center group transition-all opacity-60 hover:opacity-100"
+                  title="Remove submission"
+                >
                   <motion.div
-                    key="liked"
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    transition={{ type: 'spring', stiffness: 500, damping: 15 }}
-                  >
-                    <Heart weight="fill" className="w-5 h-5 text-red-500" />
-                  </motion.div>
-                ) : (
-                  <motion.div
-                    key="not-liked"
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.9 }}
                   >
-                    <Heart weight="regular" className="w-5 h-5 text-card-foreground/40 group-hover:text-red-400 transition-colors" />
+                    <Trash weight="regular" className="w-5 h-5 text-destructive/70 group-hover:text-destructive transition-colors" />
                   </motion.div>
-                )}
-              </AnimatePresence>
-              <span className={`text-xs font-body font-medium transition-colors ${isLiked ? 'text-red-500' : 'text-card-foreground/40 group-hover:text-card-foreground/60'}`}>
-                {resolution.likes || 0}
-              </span>
-            </button>
+                </button>
+              )}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onLike();
+                }}
+                disabled={isLiked}
+                className="flex items-center gap-1 group transition-all"
+              >
+                <AnimatePresence mode="wait">
+                  {isLiked ? (
+                    <motion.div
+                      key="liked"
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ type: 'spring', stiffness: 500, damping: 15 }}
+                    >
+                      <Heart weight="fill" className="w-5 h-5 text-red-500" />
+                    </motion.div>
+                  ) : (
+                    <motion.div
+                      key="not-liked"
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
+                    >
+                      <Heart weight="regular" className="w-5 h-5 text-card-foreground/40 group-hover:text-red-400 transition-colors" />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+                <span className={`text-xs font-body font-medium transition-colors ${isLiked ? 'text-red-500' : 'text-card-foreground/40 group-hover:text-card-foreground/60'}`}>
+                  {resolution.likes || 0}
+                </span>
+              </button>
+            </div>
           </div>
         </CardContent>
       </Card>

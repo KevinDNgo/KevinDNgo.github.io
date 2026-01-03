@@ -10,6 +10,11 @@ function App() {
   const [resolutions, setResolutions, deleteResolutions] = useKV<Resolution[]>('resolutions', []);
   const [dataVersion, setDataVersion] = useKV<number>('data-version', 0);
   const [view, setView] = useState<'gallery' | 'form' | null>(null);
+  const [isOwner, setIsOwner] = useState(false);
+
+  useEffect(() => {
+    spark.user().then((user) => setIsOwner(user.isOwner));
+  }, []);
 
   useEffect(() => {
     if (dataVersion !== undefined && dataVersion < DATA_VERSION) {
@@ -41,6 +46,12 @@ function App() {
     );
   };
 
+  const handleDelete = (resolutionId: string) => {
+    setResolutions((current) => 
+      (current || []).filter((r) => r.id !== resolutionId)
+    );
+  };
+
   const resolvedResolutions = resolutions ?? [];
 
   if (view === null) {
@@ -64,6 +75,8 @@ function App() {
           resolutions={resolvedResolutions} 
           onAddNew={handleAddNew}
           onLike={handleLike}
+          onDelete={handleDelete}
+          isAdmin={isOwner}
         />
       )}
     </div>
