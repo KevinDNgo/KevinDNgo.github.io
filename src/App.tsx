@@ -4,15 +4,25 @@ import ResolutionForm from '@/components/resolutions/ResolutionForm';
 import ResolutionGallery from '@/components/resolutions/ResolutionGallery';
 import type { Resolution } from '@/lib/types';
 
+const DATA_VERSION = 2;
+
 function App() {
-  const [resolutions, setResolutions] = useKV<Resolution[]>('resolutions', []);
+  const [resolutions, setResolutions, deleteResolutions] = useKV<Resolution[]>('resolutions', []);
+  const [dataVersion, setDataVersion] = useKV<number>('data-version', 0);
   const [view, setView] = useState<'gallery' | 'form' | null>(null);
 
   useEffect(() => {
-    if (view === null && resolutions !== undefined) {
+    if (dataVersion !== undefined && dataVersion < DATA_VERSION) {
+      deleteResolutions();
+      setDataVersion(DATA_VERSION);
+    }
+  }, [dataVersion, deleteResolutions, setDataVersion]);
+
+  useEffect(() => {
+    if (view === null && resolutions !== undefined && dataVersion === DATA_VERSION) {
       setView(resolutions.length === 0 ? 'form' : 'gallery');
     }
-  }, [resolutions, view]);
+  }, [resolutions, view, dataVersion]);
 
   const handleSubmit = (newResolution: Resolution) => {
     setResolutions((current) => [...(current || []), newResolution]);
