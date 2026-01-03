@@ -45,7 +45,7 @@ export default function ResolutionGallery({ resolutions, onAddNew, onLike, onDel
         <div className="flex items-center gap-2">
           <Sparkle weight="fill" className="w-6 h-6 text-primary" />
           <h1 className="font-display text-xl sm:text-2xl font-bold text-foreground">
-            2025 Resolutions
+            2026 Resolutions
           </h1>
         </div>
         <Button
