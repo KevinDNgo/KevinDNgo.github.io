@@ -46,7 +46,11 @@ function App() {
     );
   };
 
-  const handleDelete = (resolutionId: string) => {
+  const handleDelete = async (resolutionId: string) => {
+    const user = await spark.user();
+    if (!user.isOwner) {
+      return;
+    }
     setResolutions((current) => 
       (current || []).filter((r) => r.id !== resolutionId)
     );
