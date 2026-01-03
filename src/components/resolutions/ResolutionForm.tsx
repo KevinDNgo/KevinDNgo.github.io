@@ -7,7 +7,45 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Plus, Trash, PaperPlaneTilt, Sparkle, ArrowLeft } from '@phosphor-icons/react';
 import { filterTexts } from '@/lib/profanity-filter';
 import { toast } from 'sonner';
+import confetti from 'canvas-confetti';
 import type { Resolution } from '@/lib/types';
+
+const triggerConfetti = () => {
+  const duration = 3000;
+  const end = Date.now() + duration;
+
+  const colors = ['#d4a574', '#e8c89e', '#f5deb3', '#ffd700', '#ffe4b5'];
+
+  const frame = () => {
+    confetti({
+      particleCount: 3,
+      angle: 60,
+      spread: 55,
+      origin: { x: 0, y: 0.7 },
+      colors,
+    });
+    confetti({
+      particleCount: 3,
+      angle: 120,
+      spread: 55,
+      origin: { x: 1, y: 0.7 },
+      colors,
+    });
+
+    if (Date.now() < end) {
+      requestAnimationFrame(frame);
+    }
+  };
+
+  confetti({
+    particleCount: 100,
+    spread: 70,
+    origin: { y: 0.6 },
+    colors,
+  });
+
+  frame();
+};
 
 interface ResolutionFormProps {
   onSubmit: (resolution: Resolution) => void;
@@ -72,6 +110,7 @@ export default function ResolutionForm({ onSubmit, onCancel }: ResolutionFormPro
     };
 
     onSubmit(newResolution);
+    triggerConfetti();
     toast.success('Your resolutions have been shared!');
   };
 
