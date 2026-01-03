@@ -23,6 +23,14 @@ function App() {
     setView('form');
   };
 
+  const handleLike = (resolutionId: string) => {
+    setResolutions((current) => 
+      (current || []).map((r) => 
+        r.id === resolutionId ? { ...r, likes: (r.likes || 0) + 1 } : r
+      )
+    );
+  };
+
   const resolvedResolutions = resolutions ?? [];
 
   if (view === null) {
@@ -44,7 +52,8 @@ function App() {
       ) : (
         <ResolutionGallery 
           resolutions={resolvedResolutions} 
-          onAddNew={handleAddNew} 
+          onAddNew={handleAddNew}
+          onLike={handleLike}
         />
       )}
     </div>

@@ -99,6 +99,7 @@ export default function ResolutionForm({ onSubmit, onCancel }: ResolutionFormPro
       resolutions: validResolutions,
       author: isAnonymous ? null : authorName.trim() || null,
       createdAt: Date.now(),
+      likes: 0,
       animationProps: {
         startY: Math.random() * 60 + 20,
         driftY: (Math.random() - 0.5) * 40,

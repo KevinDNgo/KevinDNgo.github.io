@@ -3,6 +3,7 @@ export interface Resolution {
   resolutions: string[];
   author: string | null;
   createdAt: number;
+  likes: number;
   animationProps: {
     startY: number;
     driftY: number;

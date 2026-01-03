@@ -1,14 +1,32 @@
+import { useKV } from '@github/spark/hooks';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Plus, Sparkle } from '@phosphor-icons/react';
+import { Plus, Sparkle, Heart } from '@phosphor-icons/react';
+import { motion, AnimatePresence } from 'framer-motion';
 import type { Resolution } from '@/lib/types';
 
 interface ResolutionGalleryProps {
   resolutions: Resolution[];
   onAddNew: () => void;
+  onLike: (resolutionId: string) => void;
 }
 
-export default function ResolutionGallery({ resolutions, onAddNew }: ResolutionGalleryProps) {
+export default function ResolutionGallery({ resolutions, onAddNew, onLike }: ResolutionGalleryProps) {
+  const [likedIds, setLikedIds] = useKV<string[]>('liked-resolutions', []);
+
+  const handleLike = (resolutionId: string) => {
+    const currentLiked = likedIds || [];
+    if (currentLiked.includes(resolutionId)) {
+      return;
+    }
+    setLikedIds((current) => [...(current || []), resolutionId]);
+    onLike(resolutionId);
+  };
+
+  const isLiked = (resolutionId: string) => {
+    return (likedIds || []).includes(resolutionId);
+  };
+
   return (
     <div className="min-h-screen relative">
       <header className="fixed top-0 left-0 right-0 z-50 p-4 sm:p-6 flex justify-between items-center">
@@ -50,7 +68,13 @@ export default function ResolutionGallery({ resolutions, onAddNew }: ResolutionG
         <div className="pt-20 pb-8 px-4 min-h-screen">
           <div className="relative w-full h-[calc(100vh-6rem)]">
             {resolutions.map((resolution, index) => (
-              <FloatingCard key={resolution.id} resolution={resolution} index={index} />
+              <FloatingCard 
+                key={resolution.id} 
+                resolution={resolution} 
+                index={index}
+                isLiked={isLiked(resolution.id)}
+                onLike={() => handleLike(resolution.id)}
+              />
             ))}
           </div>
         </div>
@@ -59,7 +83,14 @@ export default function ResolutionGallery({ resolutions, onAddNew }: ResolutionG
   );
 }
 
-function FloatingCard({ resolution, index }: { resolution: Resolution; index: number }) {
+interface FloatingCardProps {
+  resolution: Resolution;
+  index: number;
+  isLiked: boolean;
+  onLike: () => void;
+}
+
+function FloatingCard({ resolution, index, isLiked, onLike }: FloatingCardProps) {
   const { animationProps } = resolution;
   
   const gridCols = 3;
@@ -95,10 +126,39 @@ function FloatingCard({ resolution, index }: { resolution: Resolution; index: nu
             </li>
           ))}
         </ul>
-        <div className="mt-3 pt-3 border-t border-border/50">
+        <div className="mt-3 pt-3 border-t border-border/50 flex items-center justify-between">
           <p className="font-body text-xs sm:text-sm text-card-foreground/60 italic">
             — {resolution.author || 'Anonymous'}
           </p>
+          <button
+            onClick={onLike}
+            disabled={isLiked}
+            className="flex items-center gap-1 group transition-all"
+          >
+            <AnimatePresence mode="wait">
+              {isLiked ? (
+                <motion.div
+                  key="liked"
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ type: 'spring', stiffness: 500, damping: 15 }}
+                >
+                  <Heart weight="fill" className="w-5 h-5 text-red-500" />
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="not-liked"
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                >
+                  <Heart weight="regular" className="w-5 h-5 text-card-foreground/40 group-hover:text-red-400 transition-colors" />
+                </motion.div>
+              )}
+            </AnimatePresence>
+            <span className={`text-xs font-body font-medium transition-colors ${isLiked ? 'text-red-500' : 'text-card-foreground/40 group-hover:text-card-foreground/60'}`}>
+              {resolution.likes || 0}
+            </span>
+          </button>
         </div>
       </CardContent>
     </Card>
