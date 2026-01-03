@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useKV } from '@github/spark/hooks';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -13,6 +14,7 @@ interface ResolutionGalleryProps {
 
 export default function ResolutionGallery({ resolutions, onAddNew, onLike }: ResolutionGalleryProps) {
   const [likedIds, setLikedIds] = useKV<string[]>('liked-resolutions', []);
+  const [focusedId, setFocusedId] = useState<string | null>(null);
 
   const handleLike = (resolutionId: string) => {
     const currentLiked = likedIds || [];
@@ -25,6 +27,14 @@ export default function ResolutionGallery({ resolutions, onAddNew, onLike }: Res
 
   const isLiked = (resolutionId: string) => {
     return (likedIds || []).includes(resolutionId);
+  };
+
+  const handleCardFocus = (id: string) => {
+    setFocusedId(id);
+  };
+
+  const handleBackdropClick = () => {
+    setFocusedId(null);
   };
 
   return (
@@ -65,8 +75,8 @@ export default function ResolutionGallery({ resolutions, onAddNew, onLike }: Res
           </div>
         </div>
       ) : (
-        <div className="pt-20 pb-8 px-4 min-h-screen">
-          <div className="relative w-full h-[calc(100vh-6rem)]">
+        <div className="pt-24 pb-8 px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 max-w-7xl mx-auto">
             {resolutions.map((resolution, index) => (
               <FloatingCard 
                 key={resolution.id} 
@@ -74,11 +84,26 @@ export default function ResolutionGallery({ resolutions, onAddNew, onLike }: Res
                 index={index}
                 isLiked={isLiked(resolution.id)}
                 onLike={() => handleLike(resolution.id)}
+                isFocused={focusedId === resolution.id}
+                onFocus={() => handleCardFocus(resolution.id)}
               />
             ))}
           </div>
         </div>
       )}
+
+      <AnimatePresence>
+        {focusedId && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 bg-background/60 backdrop-blur-sm z-40"
+            onClick={handleBackdropClick}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }
@@ -88,79 +113,90 @@ interface FloatingCardProps {
   index: number;
   isLiked: boolean;
   onLike: () => void;
+  isFocused: boolean;
+  onFocus: () => void;
 }
 
-function FloatingCard({ resolution, index, isLiked, onLike }: FloatingCardProps) {
+function FloatingCard({ resolution, index, isLiked, onLike, isFocused, onFocus }: FloatingCardProps) {
   const { animationProps } = resolution;
   
-  const gridCols = 3;
-  const gridRows = Math.ceil(12 / gridCols);
-  const col = index % gridCols;
-  const row = Math.floor(index / gridCols) % gridRows;
-  
-  const baseLeft = (col / gridCols) * 70 + 5;
-  const baseTop = (row / gridRows) * 70 + 5;
-  const randomOffsetX = (animationProps.rotation / 8) * 10;
-  const randomOffsetY = (animationProps.driftY / 40) * 10;
+  const rotation = animationProps.rotation * 0.5;
 
   return (
-    <Card
-      className="absolute bg-card/95 backdrop-blur-sm border-primary/10 shadow-xl hover:shadow-2xl transition-shadow duration-300 cursor-default w-64 sm:w-72 animate-float"
+    <motion.div
+      layout
+      onClick={(e) => {
+        e.stopPropagation();
+        onFocus();
+      }}
+      animate={{
+        scale: isFocused ? 1.05 : 1,
+        rotate: isFocused ? 0 : rotation,
+        zIndex: isFocused ? 50 : 1,
+      }}
+      whileHover={!isFocused ? { scale: 1.02, rotate: 0, zIndex: 10 } : undefined}
+      transition={{ type: 'spring', stiffness: 300, damping: 25 }}
       style={{
-        left: `calc(${baseLeft}% + ${randomOffsetX}%)`,
-        top: `calc(${baseTop}% + ${randomOffsetY}%)`,
-        '--rotation': `${animationProps.rotation}deg`,
         '--duration': `${animationProps.floatDuration}s`,
-        '--delay': `${index * 0.5}s`,
-        transform: `rotate(${animationProps.rotation}deg)`,
+        '--delay': `${index * 0.3}s`,
       } as React.CSSProperties}
+      className={`cursor-pointer ${!isFocused ? 'animate-float' : ''}`}
     >
-      <CardContent className="p-4 sm:p-5">
-        <ul className="space-y-2">
-          {resolution.resolutions.map((text, i) => (
-            <li key={i} className="flex items-start gap-2">
-              <Sparkle weight="fill" className="w-4 h-4 text-primary shrink-0 mt-0.5" />
-              <span className="font-body text-sm sm:text-base text-card-foreground leading-relaxed">
-                {text}
+      <Card
+        className={`bg-card/95 backdrop-blur-sm border-primary/10 shadow-xl transition-shadow duration-300 ${
+          isFocused ? 'shadow-2xl ring-2 ring-primary/30' : 'hover:shadow-2xl'
+        }`}
+      >
+        <CardContent className="p-4 sm:p-5">
+          <ul className="space-y-2">
+            {resolution.resolutions.map((text, i) => (
+              <li key={i} className="flex items-start gap-2">
+                <Sparkle weight="fill" className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+                <span className="font-body text-sm sm:text-base text-card-foreground leading-relaxed">
+                  {text}
+                </span>
+              </li>
+            ))}
+          </ul>
+          <div className="mt-3 pt-3 border-t border-border/50 flex items-center justify-between">
+            <p className="font-body text-xs sm:text-sm text-card-foreground/60 italic">
+              — {resolution.author || 'Anonymous'}
+            </p>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onLike();
+              }}
+              disabled={isLiked}
+              className="flex items-center gap-1 group transition-all"
+            >
+              <AnimatePresence mode="wait">
+                {isLiked ? (
+                  <motion.div
+                    key="liked"
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ type: 'spring', stiffness: 500, damping: 15 }}
+                  >
+                    <Heart weight="fill" className="w-5 h-5 text-red-500" />
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="not-liked"
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                  >
+                    <Heart weight="regular" className="w-5 h-5 text-card-foreground/40 group-hover:text-red-400 transition-colors" />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+              <span className={`text-xs font-body font-medium transition-colors ${isLiked ? 'text-red-500' : 'text-card-foreground/40 group-hover:text-card-foreground/60'}`}>
+                {resolution.likes || 0}
               </span>
-            </li>
-          ))}
-        </ul>
-        <div className="mt-3 pt-3 border-t border-border/50 flex items-center justify-between">
-          <p className="font-body text-xs sm:text-sm text-card-foreground/60 italic">
-            — {resolution.author || 'Anonymous'}
-          </p>
-          <button
-            onClick={onLike}
-            disabled={isLiked}
-            className="flex items-center gap-1 group transition-all"
-          >
-            <AnimatePresence mode="wait">
-              {isLiked ? (
-                <motion.div
-                  key="liked"
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ type: 'spring', stiffness: 500, damping: 15 }}
-                >
-                  <Heart weight="fill" className="w-5 h-5 text-red-500" />
-                </motion.div>
-              ) : (
-                <motion.div
-                  key="not-liked"
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
-                >
-                  <Heart weight="regular" className="w-5 h-5 text-card-foreground/40 group-hover:text-red-400 transition-colors" />
-                </motion.div>
-              )}
-            </AnimatePresence>
-            <span className={`text-xs font-body font-medium transition-colors ${isLiked ? 'text-red-500' : 'text-card-foreground/40 group-hover:text-card-foreground/60'}`}>
-              {resolution.likes || 0}
-            </span>
-          </button>
-        </div>
-      </CardContent>
-    </Card>
+            </button>
+          </div>
+        </CardContent>
+      </Card>
+    </motion.div>
   );
 }
