@@ -1,23 +1,45 @@
-# ✨ Welcome to Your Spark Template!
-You've just launched your brand-new Spark Template Codespace — everything’s fired up and ready for you to explore, build, and create with Spark!
+# 🎉 New Year's Resolutions
 
-This template is your blank canvas. It comes with a minimal setup to help you get started quickly with Spark development.
+A celebratory web app where users submit their New Year's resolutions and view others' resolutions floating across the screen in a magical, festive display.
 
-🚀 What's Inside?
-- A clean, minimal Spark environment
-- Pre-configured for local development
-- Ready to scale with your ideas
-  
-🧠 What Can You Do?
+## ✨ Live Demo
 
-Right now, this is just a starting point — the perfect place to begin building and testing your Spark applications.
+Visit the live app: [https://kevindngo.github.io/new-years-resolution/](https://kevindngo.github.io/new-years-resolution/)
 
-🧹 Just Exploring?
-No problem! If you were just checking things out and don’t need to keep this code:
+## 🚀 Features
 
-- Simply delete your Spark.
-- Everything will be cleaned up — no traces left behind.
+- Submit your New Year's resolutions
+- View resolutions from others floating across the screen
+- Optional anonymous submissions
+- Profanity filter to keep the space positive
+- Beautiful, celebratory design with animations
 
-📄 License For Spark Template Resources 
+## 🛠️ Development
+
+### Local Development
+
+```bash
+# Install dependencies
+npm install
+
+# Start development server
+npm run dev
+```
+
+### Build for Production
+
+```bash
+# Build the app
+npm run build
+
+# Preview the production build
+npm preview
+```
+
+## 🌐 Deployment
+
+This app is automatically deployed to GitHub Pages when changes are pushed to the `main` branch. The deployment is handled by GitHub Actions.
+
+## 📄 License
 
 The Spark Template files and resources from GitHub are licensed under the terms of the MIT license, Copyright GitHub, Inc.
