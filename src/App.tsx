@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useKV } from '@github/spark/hooks';
+import { useLocalStorage } from '@/hooks/useLocalStorage';
 import ResolutionForm from '@/components/resolutions/ResolutionForm';
 import ResolutionGallery from '@/components/resolutions/ResolutionGallery';
 import type { Resolution } from '@/lib/types';
@@ -7,14 +7,10 @@ import type { Resolution } from '@/lib/types';
 const DATA_VERSION = 2;
 
 function App() {
-  const [resolutions, setResolutions, deleteResolutions] = useKV<Resolution[]>('resolutions', []);
-  const [dataVersion, setDataVersion] = useKV<number>('data-version', 0);
+  const [resolutions, setResolutions, deleteResolutions] = useLocalStorage<Resolution[]>('resolutions', []);
+  const [dataVersion, setDataVersion] = useLocalStorage<number>('data-version', 0);
   const [view, setView] = useState<'gallery' | 'form' | null>(null);
-  const [isOwner, setIsOwner] = useState(false);
-
-  useEffect(() => {
-    spark.user().then((user) => setIsOwner(user.isOwner));
-  }, []);
+  const [isOwner] = useState(true); // Always true for standalone app
 
   useEffect(() => {
     if (dataVersion !== undefined && dataVersion < DATA_VERSION) {
@@ -46,11 +42,7 @@ function App() {
     );
   };
 
-  const handleDelete = async (resolutionId: string) => {
-    const user = await spark.user();
-    if (!user.isOwner) {
-      return;
-    }
+  const handleDelete = (resolutionId: string) => {
     setResolutions((current) => 
       (current || []).filter((r) => r.id !== resolutionId)
     );
