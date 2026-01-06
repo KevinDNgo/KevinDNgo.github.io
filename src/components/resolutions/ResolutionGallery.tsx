@@ -50,7 +50,7 @@ export default function ResolutionGallery({ resolutions, onAddNew, onLike, onDel
         </div>
         <Button
           onClick={onAddNew}
-          className="bg-primary text-primary-foreground hover:bg-primary/90 font-body font-medium shadow-lg shadow-primary/25"
+          className="bg-primary text-background hover:bg-primary/90 font-body font-semibold shadow-lg shadow-primary/25"
         >
           <Plus className="mr-1" weight="bold" />
           Add Yours
@@ -69,7 +69,7 @@ export default function ResolutionGallery({ resolutions, onAddNew, onLike, onDel
             </p>
             <Button
               onClick={onAddNew}
-              className="bg-primary text-primary-foreground hover:bg-primary/90 font-body"
+              className="bg-primary text-background hover:bg-primary/90 font-body font-semibold"
             >
               <Plus className="mr-1" weight="bold" />
               Share Your Resolutions
