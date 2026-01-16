@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useKV } from '@github/spark/hooks';
+import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Plus, Sparkle, Heart, Trash } from '@phosphor-icons/react';
@@ -15,7 +15,7 @@ interface ResolutionGalleryProps {
 }
 
 export default function ResolutionGallery({ resolutions, onAddNew, onLike, onDelete, isAdmin }: ResolutionGalleryProps) {
-  const [likedIds, setLikedIds] = useKV<string[]>('liked-resolutions', []);
+  const [likedIds, setLikedIds] = useLocalStorage<string[]>('liked-resolutions', []);
   const [focusedId, setFocusedId] = useState<string | null>(null);
 
   const handleLike = (resolutionId: string) => {
